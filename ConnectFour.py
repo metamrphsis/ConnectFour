@@ -3,10 +3,8 @@ import argparse
 import multiprocessing as mp
 import tkinter as tk
 import random
-
 # 3rd party libs
 import numpy as np
-
 # Local libs
 from Player import AIPlayer, RandomPlayer, HumanPlayer
 
@@ -27,7 +25,6 @@ class Game:
         self.run_to_end = False
         self.ai_turn_limit = time
         self.human_move = None
-
         #https://stackoverflow.com/a/38159672
         self.root = tk.Tk()
         self.root.title('Connect 4')
@@ -35,23 +32,19 @@ class Game:
         self.player_string.pack()
         self.c = tk.Canvas(self.root, width=700, height=600)
         self.c.pack()
-
         for row in range(0, 700, 100):
             column = []
             for col in range(0, 700, 100):
                 column.append(self.c.create_oval(row, col, row+100, col+100, fill=''))
             self.gui_board.append(column)
-
         self.c.bind("<Button-1>", self.canvas_click)
         self.b_next_move = tk.Button(self.root, text='Next Move', command=self.make_move)
         self.b_finish = tk.Button(self.root, text='Finish Game', command=self.finish_game)
         self.b_reset = tk.Button(self.root, text='Reset Game', command=self.reset_game)
-
         self.b_next_move.pack()
         if player1.type != 'human' and player2.type != 'human':
             self.b_finish.pack()
         self.b_reset.pack()
-
         self.root.mainloop()
 
     def canvas_click(self, e):
@@ -66,7 +59,6 @@ class Game:
         self.game_over = False
         self.run_to_end = False
         self.human_move = None
-
         self.board = np.zeros([6,7]).astype(np.uint8)
         for i in self.gui_board:
             for j in i:
@@ -85,7 +77,6 @@ class Game:
         # ANSI color codes for colors
         colors = {'red': '\033[91m', 'yellow': '\033[93m', 'end': '\033[0m'}
         # ASCII Art Text for "THE WINNER IS PLAYER X"
-        # Use an ASCII art generator for custom text or design your own.
         the = """
 
 ████████╗██╗  ██╗███████╗
@@ -153,9 +144,8 @@ class Game:
 
 
         """
-
         color = colors['red'] if player_number == 2 else colors['yellow']
-        # Printing the winner message in color
+        # printing the winner message in color
         print(color)
         print(the)
         print(winner)
@@ -167,14 +157,11 @@ class Game:
     def make_move(self):
         if not self.game_over:
             current_player = self.players[self.current_turn]
-
             if current_player.type == 'ai':
-
                 if self.players[int(not self.current_turn)].type == 'random':
                     p_func = current_player.get_expectimax_move
                 else:
                     p_func = current_player.get_alpha_beta_move
-
                 try:
                     recv_end, send_end = mp.Pipe(False)
                     p = mp.Process(target=turn_worker, args=(self.board, send_end, p_func))
@@ -187,7 +174,6 @@ class Game:
                     print(uh_oh.format(current_player.player_number))
                     print(e)
                     raise Exception('Game Over')
-
                 move = recv_end.recv()
             # resource:
             # https://github.com/DanielSabo/CSE240_Assignments/blob/main/Assignment2/ConnectFour.py
@@ -203,17 +189,15 @@ class Game:
                     return
             else:
                 move = current_player.get_move(self.board)
-
             if move is not None:
                 self.update_board(int(move), current_player.player_number)
-
             if self.game_completed(current_player.player_number):
                 self.game_over = True
                 # resource:
                 # https://github.com/DanielSabo/CSE240_Assignments/blob/main/Assignment2/ConnectFour.py
                 self.run_to_end = False
                 # >>>
-                # A small addition to announce the winner
+                # a small addition to announce the winner
                 winner_announcement = "The winner is player {}".format(current_player.player_number)
                 print(winner_announcement)
                 self.print_colored_message(current_player.player_number)  # Print colorful winner announcement
@@ -228,7 +212,6 @@ class Game:
             self.b_next_move["state"] = "disabled"
             self.b_finish["state"] = "disabled"
             self.b_reset["state"] = "normal"
-
         if self.run_to_end and not self.game_over:
             self.root.after(1, self.make_move)
 
@@ -241,7 +224,6 @@ class Game:
                     update_row = row-1
                 elif row==self.board.shape[0]-1 and self.board[row, move] == 0:
                     update_row = row
-
                 if update_row >= 0:
                     self.board[update_row, move] = player_num
                     self.c.itemconfig(self.gui_board[move][update_row],
@@ -256,7 +238,6 @@ class Game:
         player_win_str = '{0}{0}{0}{0}'.format(player_num)
         board = self.board
         to_str = lambda a: ''.join(a.astype(str))
-
         def check_horizontal(b):
             for row in b:
                 if player_win_str in to_str(row):
@@ -269,7 +250,6 @@ class Game:
         def check_diagonal(b):
             for op in [None, np.fliplr]:
                 op_board = op(b) if op else b
-
                 # root_diag = np.diagonal(op_board, offset=0).astype(np.int)
                 # DeprecationWarning: `np.int` is a deprecated alias for the
                 # builtin `int`. To silence this warning, use `int` by itself.
@@ -283,7 +263,6 @@ class Game:
                 root_diag = np.diagonal(op_board, offset=0).astype(int)
                 if player_win_str in to_str(root_diag):
                     return True
-
                 for i in range(1, b.shape[1]-3):
                     for offset in [i, -i]:
                         diag = np.diagonal(op_board, offset=offset)
@@ -300,9 +279,7 @@ class Game:
                         diag = to_str(diag.astype(int))
                         if player_win_str in diag:
                             return True
-
             return False
-
         return (check_horizontal(board) or
                 check_verticle(board) or
                 check_diagonal(board))
@@ -323,7 +300,7 @@ def play_headless_game(player1, player2):
     while not game_over:
         current_player = players[current_turn]
         opponent_player = players[int(not current_turn)]
-        # Dynamically determine move based on player types
+        # dynamically determine move based on player types
         if current_player.type == 'ai':
             if opponent_player.type == 'random':
                 # print("get_expectimax_move is called")
@@ -333,7 +310,7 @@ def play_headless_game(player1, player2):
                 move = current_player.get_alpha_beta_move(board)
         else:
             move = current_player.get_move(board)
-        # The rest of the function remains the same
+        # the rest of the function remains the same
         if move is not None:
             update_board(board, move, current_player.player_number)
         if game_completed(board, current_player.player_number):
@@ -412,9 +389,8 @@ def main(player1, player2, headless=False, num_games=10, seed=None):
     player2 - a string ['ai', 'random', 'human']
     """
     if seed is not None:
-        random.seed(seed)  # Seed Python's random module
-        np.random.seed(seed)  # Seed NumPy's random module
-
+        random.seed(seed)
+        np.random.seed(seed)
     def make_player(name, num):
         if name == 'ai':
             return AIPlayer(num)
@@ -423,11 +399,11 @@ def main(player1, player2, headless=False, num_games=10, seed=None):
         elif name == 'human':
             return HumanPlayer(num)
     if headless:
-        # Initialize win counters for each player type
+        # initialize win counters for each player type
         player1_wins = 0
         player2_wins = 0
         draws = 0
-        for _ in range(num_games):  # Assuming you want to run 100 games as mentioned in the docstring
+        for _ in range(num_games):
             print("player1, ", player1)
             print("player2, ", player2)
             winner = play_headless_game(make_player(player1, 1), make_player(player2, 2))
@@ -438,13 +414,13 @@ def main(player1, player2, headless=False, num_games=10, seed=None):
                 player2_wins += 1
             else:
                 draws += 1
-        # Print results based on player types
+        # print results based on player types
         print(f"Results after {num_games} headless games:")
         print(f"{player1} Player won: {player1_wins} games")
         print(f"{player2} Player won: {player2_wins} games")
         print(f"Draws: {draws}")
     else:
-        # Insert the existing GUI-based gameplay logic here or call a function that handles it
+        # insert the existing GUI-based gameplay logic here or call a function that handles it
         Game(make_player(player1, 1), make_player(player2, 2), time)
 
 if __name__ == '__main__':
