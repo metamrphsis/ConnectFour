@@ -1,0 +1,27 @@
+#!/bin/bash
+
+# file to store results
+RESULT_FILE="game_results.txt"
+# starting and ending seed numbers
+START_SEED=1
+END_SEED=10
+
+# clear previous results
+echo "" > "$RESULT_FILE"
+
+# loop through the range of seeds
+for SEED in $(seq $START_SEED $END_SEED); do
+  echo "Running seed $SEED..."
+  # run the python program with the current seed
+  OUTPUT=$(python3.10 ConnectFour.py ai random --headless --seed $SEED)
+  # parse and record the results
+  AI_WINS=$(echo "$OUTPUT" | grep -o 'ai Player won: [0-9]\+' | grep -o '[0-9]\+')
+  RANDOM_WINS=$(echo "$OUTPUT" | grep -o 'random Player won: [0-9]\+' | grep -o '[0-9]\+')
+  DRAWS=$(echo "$OUTPUT" | grep -o 'Draws: [0-9]\+' | grep -o '[0-9]\+')
+  
+  # write to results file
+  echo "Seed $SEED: AI won $AI_WINS games, Random won $RANDOM_WINS games, Draws: $DRAWS" >> "$RESULT_FILE"
+done
+
+echo "Results written to $RESULT_FILE"
+
